@@ -7,5 +7,5 @@ const (
 	DEFAULT_FILE_PERMISSION  = 0755
 	DEFAULT_TEMPLATE_HOOK    = "hook"
 	DEFAULT_TEMPLATE_CONTENT = "content"
-	DEFAULT_SHELL            = "bash"
+	DEFAULT_SHELL            = "sh"
 )

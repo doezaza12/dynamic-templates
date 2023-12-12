@@ -30,7 +30,7 @@ func GetTemplateFunction() map[string]any {
 	}
 }
 
-func RenderTemplate(templateName string, outputDir string, name string, data any) error {
+func RenderTemplate(templateFullPath string, outputDir string, name string, data any) error {
 
 	templateFunc := GetTemplateFunction()
 
@@ -39,11 +39,19 @@ func RenderTemplate(templateName string, outputDir string, name string, data any
 		return err
 	}
 
+	// if outputDir is not set, use default output dir
 	if outputDir == "" {
 		outputDir = filepath.Join(homeDir, APP_STAGING_DIR, DEFAULT_RENDER_DIR)
 	}
 
-	templatePath := filepath.Join(homeDir, APP_STAGING_DIR, DEFAULT_TEMPLATE_DIR, templateName)
+	var templatePath string
+	// check if it is remote template or local template
+	if strings.HasSuffix(filepath.Base(templateFullPath), ".git") {
+		templatePath = filepath.Join(homeDir, APP_STAGING_DIR, DEFAULT_TEMPLATE_DIR, strings.ReplaceAll(templateFullPath, ".git", ""))
+	} else {
+		templatePath = filepath.Join(filepath.Dir(templateFullPath), filepath.Base(templateFullPath))
+	}
+
 	outputPath := filepath.Join(outputDir, name)
 
 	if err := os.MkdirAll(outputPath, DEFAULT_FILE_PERMISSION); err != nil {

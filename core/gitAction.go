@@ -8,6 +8,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/doezaza12/dynamic-templates/util"
 )
 
 func GitClone(url string, noCache bool) error {
@@ -15,7 +17,7 @@ func GitClone(url string, noCache bool) error {
 		return errors.New("url params must not empty")
 	}
 
-	if !strings.Contains(url, "git@") && !strings.Contains(url, "https") {
+	if !util.IsRemoteTemplate(url) {
 		return errors.New("url is not git's scheme")
 	}
 
