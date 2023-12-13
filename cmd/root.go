@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/doezaza12/dynamic-templates/core"
+	"github.com/doezaza12/dynamic-templates/util"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -16,6 +16,10 @@ var rootCmd = &cobra.Command{
 	Use:   "dynamic-templates",
 	Short: "Dynamic Templates is a template generator",
 	Long:  ``,
+	Example: `dynamic-templates /path/to/your/local/template rendered-template
+dynamic-templates git@github.com/doezaza12/dummy-template.git rendered-template --values core-values.yaml --values template-values.yaml
+dynamic-templates https://github.com/doezaza12/dummy-template.git rendered-template --values template-values.yaml
+`,
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 2 {
 			return errors.New("require at least 2 arguments. $REMOTE_REPO/$LOCAL_REPO, $NAME")
@@ -23,18 +27,33 @@ var rootCmd = &cobra.Command{
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
+		// get flag values
 		noCache, err := cmd.Flags().GetBool("no-cache")
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println(args)
-		err = core.GitClone(args[0], noCache)
+		valueFiles, err := cmd.Flags().GetStringArray("values")
 		if err != nil {
 			panic(err)
 		}
-		valueFiles, err := cmd.Flags().GetStringArray("value")
+		outputDir, err := cmd.Flags().GetString("out")
 		if err != nil {
 			panic(err)
+		}
+
+		var templateFullPath string
+
+		if util.IsRemoteTemplate(args[0]) {
+			// clone remote template into work dir
+			err = core.GitClone(args[0], noCache)
+			if err != nil {
+				panic(err)
+			}
+			// by default, remote template will store at $HOME/dynamic-templates/$REMOTE_TEMPLATE_NAME
+			templateFullPath = filepath.Base(args[0])
+		} else {
+			//  local template path
+			templateFullPath = args[0]
 		}
 
 		value := make(map[string]interface{})
@@ -52,7 +71,7 @@ var rootCmd = &cobra.Command{
 		// patch name into value, this is reserve variable
 		value["name"] = args[1]
 
-		core.RenderTemplate(strings.ReplaceAll(filepath.Base(args[0]), ".git", ""), "", args[1], value)
+		core.RenderTemplate(templateFullPath, outputDir, args[1], value)
 	},
 }
 
@@ -62,7 +81,9 @@ func Execute() {
 		os.Exit(1)
 	}
 }
+
 func init() {
-	rootCmd.Flags().StringArray("value", []string{}, "yaml value file for use to render template")
-	rootCmd.Flags().Bool("no-cache", false, "to clone remote template even it has already existed in local")
+	rootCmd.Flags().StringArray("values", []string{}, "yaml value files for use to render template, example = --values project-val.yaml --values kustomize-val.yaml")
+	rootCmd.Flags().Bool("no-cache", false, "to clone remote template even it has already existed in local (only affect remote template), default = false")
+	rootCmd.Flags().String("out", "", "specify output directory for rendered template (user must have RW permission)")
 }
