@@ -81,7 +81,7 @@ func RenderTemplate(templateFullPath string, outputDir string, name string, data
 				if os.IsExist(err) {
 					return nil
 				} else {
-					panic(err)
+					return err
 				}
 			}
 		}
