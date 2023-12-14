@@ -1,4 +1,4 @@
-package core
+package constants
 
 const (
 	APP_STAGING_DIR          = ".dynamic_templates"
@@ -8,4 +8,5 @@ const (
 	DEFAULT_TEMPLATE_HOOK    = "hook"
 	DEFAULT_TEMPLATE_CONTENT = "content"
 	DEFAULT_SHELL            = "sh"
+	REVISION_PATTERN         = "?ref="
 )

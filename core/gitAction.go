@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	constants "github.com/doezaza12/dynamic-templates/constant"
 	"github.com/doezaza12/dynamic-templates/util"
 )
 
@@ -26,13 +27,21 @@ func GitClone(url string, noCache bool) error {
 		return err
 	}
 
-	templateDir := filepath.Join(homeDir, APP_STAGING_DIR, DEFAULT_TEMPLATE_DIR)
-
-	if err := os.MkdirAll(templateDir, DEFAULT_FILE_PERMISSION); err != nil {
+	templateDir := filepath.Join(homeDir, constants.APP_STAGING_DIR, constants.DEFAULT_TEMPLATE_DIR)
+	if err := os.MkdirAll(templateDir, constants.DEFAULT_FILE_PERMISSION); err != nil {
 		if os.IsExist(err) {
 			fmt.Printf("%v already existed", templateDir)
 		} else {
 			return err
+		}
+	}
+
+	var branchFlag string
+	if util.HasRevision(url) {
+		baseUrl, revision, found := strings.Cut(url, constants.REVISION_PATTERN)
+		if found {
+			url = baseUrl
+			branchFlag = fmt.Sprintf("-b %v", revision)
 		}
 	}
 
@@ -58,7 +67,7 @@ func GitClone(url string, noCache bool) error {
 		return nil
 	}
 
-	cmd := exec.Command(DEFAULT_SHELL, "-c", fmt.Sprintf("git clone --depth=1 %v && rm -rf %v/.git", url,
+	cmd := exec.Command(constants.DEFAULT_SHELL, "-c", fmt.Sprintf("git clone --depth=1 %v %v && rm -rf %v/.git", branchFlag, url,
 		filepath.Join(templateDir, repoName)))
 
 	cmd.Dir = templateDir
