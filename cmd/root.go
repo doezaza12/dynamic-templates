@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
+	constants "github.com/doezaza12/dynamic-templates/constant"
 	"github.com/doezaza12/dynamic-templates/core"
 	"github.com/doezaza12/dynamic-templates/util"
 	"github.com/spf13/cobra"
@@ -51,10 +53,18 @@ dynamic-templates https://github.com/doezaza12/dummy-template.git rendered-templ
 			}
 			// by default, remote template will store at $HOME/dynamic-templates/$REMOTE_TEMPLATE_NAME
 			templateFullPath = filepath.Base(args[0])
+			if util.HasRevision(args[0]) {
+				baseUrl, _, found := strings.Cut(filepath.Base(args[0]), constants.REVISION_PATTERN)
+				if found {
+					templateFullPath = baseUrl
+				}
+			}
 		} else {
 			//  local template path
 			templateFullPath = args[0]
 		}
+
+		fmt.Println(templateFullPath)
 
 		value := make(map[string]interface{})
 		for _, valueFile := range valueFiles {

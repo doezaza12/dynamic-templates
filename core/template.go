@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	constants "github.com/doezaza12/dynamic-templates/constant"
 )
 
 func GetTemplateFunction() map[string]any {
@@ -41,20 +43,22 @@ func RenderTemplate(templateFullPath string, outputDir string, name string, data
 
 	// if outputDir is not set, use default output dir
 	if outputDir == "" {
-		outputDir = filepath.Join(homeDir, APP_STAGING_DIR, DEFAULT_RENDER_DIR)
+		outputDir = filepath.Join(homeDir, constants.APP_STAGING_DIR, constants.DEFAULT_RENDER_DIR)
 	}
 
 	var templatePath string
 	// check if it is remote template or local template
-	if strings.HasSuffix(filepath.Base(templateFullPath), ".git") {
-		templatePath = filepath.Join(homeDir, APP_STAGING_DIR, DEFAULT_TEMPLATE_DIR, strings.ReplaceAll(templateFullPath, ".git", ""))
+	if strings.Contains(filepath.Base(templateFullPath), ".git") {
+		templatePath = filepath.Join(homeDir, constants.APP_STAGING_DIR, constants.DEFAULT_TEMPLATE_DIR, strings.ReplaceAll(templateFullPath, ".git", ""))
 	} else {
 		templatePath = filepath.Join(filepath.Dir(templateFullPath), filepath.Base(templateFullPath))
 	}
 
+	fmt.Println(templatePath)
+
 	outputPath := filepath.Join(outputDir, name)
 
-	if err := os.MkdirAll(outputPath, DEFAULT_FILE_PERMISSION); err != nil {
+	if err := os.MkdirAll(outputPath, constants.DEFAULT_FILE_PERMISSION); err != nil {
 		if os.IsExist(err) {
 			fmt.Printf("%v already existed", outputPath)
 			os.RemoveAll(outputPath)
@@ -63,7 +67,7 @@ func RenderTemplate(templateFullPath string, outputDir string, name string, data
 		}
 	}
 
-	templateFilesPath := filepath.Join(templatePath, DEFAULT_TEMPLATE_CONTENT)
+	templateFilesPath := filepath.Join(templatePath, constants.DEFAULT_TEMPLATE_CONTENT)
 	templateFiles := []string{}
 	var actualDir string
 
@@ -77,7 +81,7 @@ func RenderTemplate(templateFullPath string, outputDir string, name string, data
 			templateFiles = append(templateFiles, path)
 		} else if d.IsDir() {
 			actualDir = filepath.Join(outputPath, strings.TrimPrefix(path, templateFilesPath))
-			if err := os.MkdirAll(actualDir, DEFAULT_FILE_PERMISSION); err != nil {
+			if err := os.MkdirAll(actualDir, constants.DEFAULT_FILE_PERMISSION); err != nil {
 				if os.IsExist(err) {
 					return nil
 				} else {
@@ -106,7 +110,7 @@ func RenderTemplate(templateFullPath string, outputDir string, name string, data
 		}
 	}
 
-	hookPath := filepath.Join(templatePath, DEFAULT_TEMPLATE_HOOK)
+	hookPath := filepath.Join(templatePath, constants.DEFAULT_TEMPLATE_HOOK)
 
 	if err := filepath.WalkDir(hookPath, func(path string, d fs.DirEntry, err error) error {
 		fmt.Printf("%s %s\n", path, d.Name())
@@ -120,7 +124,7 @@ func RenderTemplate(templateFullPath string, outputDir string, name string, data
 				panic(err)
 			}
 
-			cmd := exec.Command(DEFAULT_SHELL, "-c", rawHookCmd.String())
+			cmd := exec.Command(constants.DEFAULT_SHELL, "-c", rawHookCmd.String())
 			cmd.Dir = outputPath
 
 			out, err := cmd.Output()
