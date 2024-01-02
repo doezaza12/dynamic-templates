@@ -26,8 +26,8 @@ func GetTemplateFunction() map[string]any {
 		"lower":     strings.ToLower,
 		"upper":     strings.ToUpper,
 		"toString":  strconv.Itoa,
-		"quote": func(text string) string {
-			return fmt.Sprintf("\"%v\"", text)
+		"quote": func(text string) template.HTML {
+			return template.HTML(fmt.Sprintf("\"%v\"", text))
 		},
 	}
 }
@@ -111,6 +111,12 @@ func RenderTemplate(templateFullPath string, outputDir string, name string, data
 	}
 
 	hookPath := filepath.Join(templatePath, constants.DEFAULT_TEMPLATE_HOOK)
+
+	entries, err := os.ReadDir(hookPath)
+	fmt.Println(entries)
+	if os.IsNotExist(err) || len(entries) == 0 {
+		return nil
+	}
 
 	if err := filepath.WalkDir(hookPath, func(path string, d fs.DirEntry, err error) error {
 		fmt.Printf("%s %s\n", path, d.Name())
