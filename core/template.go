@@ -88,6 +88,16 @@ func RenderTemplate(templateFullPath string, outputDir string, name string, data
 					return err
 				}
 			}
+		} else {
+			actualDir = filepath.Join(outputPath, strings.TrimPrefix(path, templateFilesPath))
+			tempData, err := os.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			err = os.WriteFile(actualDir, tempData, constants.DEFAULT_FILE_PERMISSION)
+			if err != nil {
+				return err
+			}
 		}
 		return err
 	}); err != nil {
